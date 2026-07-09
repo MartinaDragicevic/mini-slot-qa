@@ -26,9 +26,14 @@ function getRandomSymbol() {
 }
 
 // updates the balance and bet values displayed on the page
+// disables buttons that the player cannot use
 function updateDisplay() {
     balanceElement.textContent = balance;
     betElement.textContent = bet;
+
+    decreaseBetButton.disabled = bet <= minBet;
+    increaseBetButton.disabled = bet >= maxBet || bet + 10 > balance;
+    spinButton.disabled = balance < bet;
 }
 
 // calculates the win amount based on the spin result
@@ -84,19 +89,32 @@ function spin() {
 // increases the bet by 10 credits
 // the bet cannot go over the maximum bet or over the current balance
 function increaseBet() {
-    if (bet < maxBet && bet + 10 <= balance) {
-        bet = bet + 10;
-        updateDisplay();
+    if (bet >= maxBet) {
+        messageElement.textContent = 'Maximum bet is already selected.';
+        return;
     }
+
+    if (bet + 10 > balance) {
+        messageElement.textContent = 'Not enough credits to increase bet.';
+        return;
+    }
+
+    bet = bet + 10;
+    messageElement.textContent = `Bet increased to ${bet} credits.`;
+    updateDisplay();
 }
 
 // decreases the bet by 10 credits
 // the bet cannot go below the minimum bet
 function decreaseBet() {
-    if (bet > minBet) {
-        bet = bet - 10;
-        updateDisplay();
+    if (bet <= minBet) {
+        messageElement.textContent = 'Minimum bet is already selected.';
+        return;
     }
+
+    bet = bet - 10;
+    messageElement.textContent = `Bet decreased to ${bet} credits.`;
+    updateDisplay();
 }
 
 spinButton.addEventListener('click', spin);
