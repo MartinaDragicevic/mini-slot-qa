@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Mini Slot QA</title>
+</head>
+<body>
+  <main>
+    <h1>Mini Slot QA</h1>
+
+    <section>
+      <p>Balance: <span data-testid="balance">1000</span> credits</p>
+      <p>Bet: <span data-testid="bet">10</span> credits</p>
+    </section>
+
+    <section>
+      <div data-testid="reel-1">🍒</div>
+      <div data-testid="reel-2">🍋</div>
+      <div data-testid="reel-3">🍇</div>
+    </section>
+
+    <section>
+      <button data-testid="decrease-bet">-</button>
+      <button data-testid="spin-button">Spin</button>
+      <button data-testid="increase-bet">+</button>
+    </section>
+
+    <p data-testid="message">Click spin to start the game.</p>
+  </main>
+</body>
+</html>
