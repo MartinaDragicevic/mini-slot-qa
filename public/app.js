@@ -1,10 +1,10 @@
-const symbols = ['🍒', '🍋', '🍇', '⭐', '🔔', '💎'];
+let symbols = [];
 
-let balance = 1000;
-let bet = 10;
+let balance = 0;
+let bet = 0;
 
-const minBet = 10;
-const maxBet = 100;
+let minBet = 10;
+let maxBet = 100;
 
 const balanceElement = document.querySelector('[data-testid="balance"]');
 const betElement = document.querySelector('[data-testid="bet"]');
@@ -18,6 +18,24 @@ const increaseBetButton = document.querySelector('[data-testid="increase-bet"]')
 const decreaseBetButton = document.querySelector('[data-testid="decrease-bet"]');
 
 const messageElement = document.querySelector('[data-testid="message"]');
+
+// disables all game buttons until the configuration is loaded
+function disableGameControls() {
+    spinButton.disabled = true;
+    increaseBetButton.disabled = true;
+    decreaseBetButton.disabled = true;
+}
+
+// loads the game configuration from the backend api
+async function loadGameConfig() {
+    const response = await fetch('/api/game-config');
+
+    if (!response.ok) {
+        throw new Error('Failed to load game configuration.');
+    }
+
+    return await response.json();
+}
 
 // returns one random symbol from the symbols array
 function getRandomSymbol() {
@@ -117,8 +135,29 @@ function decreaseBet() {
     updateDisplay();
 }
 
+// initializes the game by loading backend configuration and preparing the page
+async function initGame() {
+    disableGameControls();
+
+    try {
+        const config = await loadGameConfig();
+
+        symbols = config.symbols;
+        balance = config.initialBalance;
+        bet = config.minBet;
+        minBet = config.minBet;
+        maxBet = config.maxBet;
+
+        messageElement.textContent = 'Game loaded. Click spin to start.';
+        updateDisplay();
+    } catch (error) {
+        messageElement.textContent = 'Could not load game configuration.';
+        console.error(error);
+    }
+}
+
 spinButton.addEventListener('click', spin);
 increaseBetButton.addEventListener('click', increaseBet);
 decreaseBetButton.addEventListener('click', decreaseBet);
 
-updateDisplay();
+initGame();
