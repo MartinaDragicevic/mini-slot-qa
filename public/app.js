@@ -37,10 +37,26 @@ async function loadGameConfig() {
     return await response.json();
 }
 
-// returns one random symbol from the symbols array
-function getRandomSymbol() {
-    const randomIndex = Math.floor(Math.random() * symbols.length);
-    return symbols[randomIndex];
+// sends the current balance and bet to the backend spin api
+async function requestSpinResult() {
+    const response = await fetch('/api/spin', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            balance: balance,
+            bet: bet
+        })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || 'Failed to spin.');
+    }
+
+    return data;
 }
 
 // updates the balance and bet values displayed on the page
@@ -54,54 +70,42 @@ function updateDisplay() {
     spinButton.disabled = balance < bet;
 }
 
-// calculates the win amount based on the spin result
-// three same symbols give a bigger win, two same symbols give a smaller win
-function calculateWin(result) {
-    const first = result[0];
-    const second = result[1];
-    const third = result[2];
-
-    if (first === second && second === third) {
-        return bet * 10;
-    }
-
-    if (first === second || first === third || second === third) {
-        return bet * 2;
-    }
-
-    return 0;
+// updates the three reels with symbols returned from the backend
+function updateReels(result) {
+    reel1.textContent = result[0];
+    reel2.textContent = result[1];
+    reel3.textContent = result[2];
 }
 
-// runs one spin round
-// it checks the balance, generates symbols, calculates the win and updates the page
-function spin() {
+// runs one spin round using the backend api
+// it sends the current game state to the server and updates the page with the response
+async function spin() {
     if (balance < bet) {
         messageElement.textContent = 'Not enough credits to spin.';
         return;
     }
 
-    balance = balance - bet;
+    spinButton.disabled = true;
+    messageElement.textContent = 'Spinning...';
 
-    const result = [
-        getRandomSymbol(),
-        getRandomSymbol(),
-        getRandomSymbol()
-    ];
+    try {
+        const spinResult = await requestSpinResult();
 
-    reel1.textContent = result[0];
-    reel2.textContent = result[1];
-    reel3.textContent = result[2];
+        balance = spinResult.balanceAfter;
+        updateReels(spinResult.result);
 
-    const win = calculateWin(result);
-    balance = balance + win;
+        if (spinResult.isWin) {
+            messageElement.textContent = `You won ${spinResult.win} credits!`;
+        } else {
+            messageElement.textContent = 'No win this time. Try again!';
+        }
 
-    if (win > 0) {
-        messageElement.textContent = `You won ${win} credits!`;
-    } else {
-        messageElement.textContent = 'No win this time. Try again!';
+        updateDisplay();
+    } catch (error) {
+        messageElement.textContent = error.message;
+        console.error(error);
+        updateDisplay();
     }
-
-    updateDisplay();
 }
 
 // increases the bet by 10 credits
