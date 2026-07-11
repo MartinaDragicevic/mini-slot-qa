@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "playwright test",
+    "test:e2e": "playwright test tests/e2e",
+    "test:api": "playwright test tests/api",
     "test:headed": "playwright test --headed"
 },
   "repository": {
