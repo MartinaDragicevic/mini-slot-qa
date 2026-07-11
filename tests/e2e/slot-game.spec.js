@@ -37,3 +37,33 @@ test('allows player to change bet and spin', async ({ page }) => {
     await expect(page.getByTestId('reel-2')).not.toHaveText('');
     await expect(page.getByTestId('reel-3')).not.toHaveText('');
 });
+
+test('shows winning result when spin API returns a win', async ({ page }) => {
+    await page.route('**/api/spin', async (route) => {
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                result: ['💎', '💎', '💎'],
+                bet: 10,
+                win: 100,
+                balanceBefore: 1000,
+                balanceAfter: 1090,
+                isWin: true
+            })
+        });
+    });
+
+    await page.goto('/');
+
+    await expect(page.getByTestId('message')).toHaveText('Game loaded. Click spin to start.');
+
+    await page.getByTestId('spin-button').click();
+
+    await expect(page.getByTestId('reel-1')).toHaveText('💎');
+    await expect(page.getByTestId('reel-2')).toHaveText('💎');
+    await expect(page.getByTestId('reel-3')).toHaveText('💎');
+
+    await expect(page.getByTestId('balance')).toHaveText('1090');
+    await expect(page.getByTestId('message')).toHaveText('You won 100 credits!');
+});
