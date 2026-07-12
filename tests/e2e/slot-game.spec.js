@@ -67,3 +67,23 @@ test('shows winning result when spin API returns a win', async ({ page }) => {
     await expect(page.getByTestId('balance')).toHaveText('1090');
     await expect(page.getByTestId('message')).toHaveText('You won 100 credits!');
 });
+
+test('shows error message when spin API fails', async ({ page }) => {
+    await page.route('**/api/spin', async (route) => {
+        await route.fulfill({
+            status: 400,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                error: 'Not enough credits'
+            })
+        });
+    });
+
+    await page.goto('/');
+
+    await expect(page.getByTestId('message')).toHaveText('Game loaded. Click spin to start.');
+
+    await page.getByTestId('spin-button').click();
+
+    await expect(page.getByTestId('message')).toHaveText('Not enough credits');
+});
